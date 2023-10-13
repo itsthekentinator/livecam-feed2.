@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Live Webcam Feed with Motion Detection</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tracking.js/1.1.3/tracking.js"></script>
+</head>
+<body>
+    <video id="live-cam" autoplay></video>
+    <p id="detection-message">Motion Detection: Waiting...</p>
+
+    <script>
+        var videoElement = document.getElementById('live-cam');
+        var detectionMessage = document.getElementById('detection-message');
+        var notificationSent = false;
+
+        var tracker = new tracking.ObjectTracker(['face']);
+
+        tracker.on('track', function(event) {
+            if (event.data.length > 0 && !notificationSent) {
+                // Motion detected, send a notification
+                fetch('/motion-detected', { method: 'POST' })
+                    .then(response => {
+                        if (response.ok) {
+                            console.log('Motion detected notification sent.');
+                            detectionMessage.textContent = 'Motion Detection: Motion Detected';
+                            notificationSent = true;
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error sending notification:', error);
+                    });
+            }
+        });
+
+        tracking.track(videoElement, tracker);
+    </script>
+</body>
+</html>
